@@ -17,6 +17,7 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rclcpp_components REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(radial_menu_model REQUIRED)
 find_package(radial_menu_msgs REQUIRED)
@@ -27,11 +28,13 @@ include_directories(
 
 ## Declare a C++ library
 add_library(
-  radial_menu_backend_plugins
-  src/radial_menu_backend_plugins.cpp
+  radial_menu_backend_component SHARED
+  src/radial_menu_backend_component.cpp
 )
-ament_target_dependencies(radial_menu_backend_plugins
+ament_target_dependencies(radial_menu_backend_component
   rclcpp sensor_msgs radial_menu_model radial_menu_msgs)
+rclcpp_components_register_nodes(radial_menu_backend_component
+  "navi_sim::NaviSimComponent")
 
 ament_export_include_directories(include)
 ament_package()

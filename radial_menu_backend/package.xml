@@ -8,20 +8,20 @@
   <license>MIT</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
-  <build_depend>pluginlib</build_depend>
   <build_depend>radial_menu_model</build_depend>
   <build_depend>radial_menu_msgs</build_depend>
   <build_depend>rclcpp</build_depend>
+  <build_depend>rclcpp_components</build_depend>
   <build_depend>sensor_msgs</build_depend>
-  <build_export_depend>pluginlib</build_export_depend>
   <build_export_depend>radial_menu_model</build_export_depend>
   <build_export_depend>radial_menu_msgs</build_export_depend>
   <build_export_depend>rclcpp</build_export_depend>
+  <build_export_depend>rclcpp_components</build_export_depend>
   <build_export_depend>sensor_msgs</build_export_depend>
-  <exec_depend>pluginlib</exec_depend>
   <exec_depend>radial_menu_model</exec_depend>
   <exec_depend>radial_menu_msgs</exec_depend>
   <exec_depend>rclcpp</exec_depend>
+  <exec_depend>rclcpp_components</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
 
   <export>
