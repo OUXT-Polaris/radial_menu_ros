@@ -7,8 +7,8 @@
 
 #include <radial_menu_backend/backend_config.hpp>
 #include <radial_menu_model/model.hpp>
-#include <radial_menu_msgs/State.h>
-#include <sensor_msgs/Joy.h>
+#include <radial_menu_msgs/msg/state.hpp>
+#include <sensor_msgs/msg/joy.hpp>
 
 namespace radial_menu_backend {
 
@@ -24,7 +24,7 @@ public:
 
   virtual ~BackendController() {}
 
-  std::shared_ptr<radial_menu_msgs::msg::State> update(const sensor_msgs::Joy &joy) {
+  std::shared_ptr<radial_menu_msgs::msg::State> update(const sensor_msgs::msg::Joy &joy) {
     // reset the menu based on enable/disable state if required
     const bool enable_is_pressed(buttonValue(joy, config_.enable_button) > 0);
     if ((config_.reset_on_enabling && !enable_was_pressed_ && enable_is_pressed) ||
@@ -84,7 +84,7 @@ public:
 protected:
   // utility functions
 
-  double pointingAngle(const sensor_msgs::Joy &joy) const {
+  double pointingAngle(const sensor_msgs::msg::Joy &joy) const {
     const double value_v(config_.invert_pointing_axis_v ? -axisValue(joy, config_.pointing_axis_v)
                                                         : axisValue(joy, config_.pointing_axis_v));
     const double value_h(config_.invert_pointing_axis_h ? -axisValue(joy, config_.pointing_axis_h)
@@ -106,13 +106,13 @@ protected:
   }
 
   // return button value without id range error
-  static int buttonValue(const sensor_msgs::Joy &joy, const int bid) {
-    return (bid >= 0 && bid < joy.buttons.size()) ? joy.buttons[bid] : 0;
+  static int buttonValue(const sensor_msgs::msg::Joy &joy, const int bid) {
+    return (bid >= 0 && bid < static_cast<int>(joy.buttons.size())) ? joy.buttons[bid] : 0;
   }
 
   // return axis value without id range error
-  static double axisValue(const sensor_msgs::Joy &joy, const int aid) {
-    return (aid >= 0 && aid < joy.axes.size()) ? joy.axes[aid] : 0.;
+  static double axisValue(const sensor_msgs::msg::Joy &joy, const int aid) {
+    return (aid >= 0 && aid < static_cast<int>(joy.axes.size())) ? joy.axes[aid] : 0.;
   }
 
 protected:

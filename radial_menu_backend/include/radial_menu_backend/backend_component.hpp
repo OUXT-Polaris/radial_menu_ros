@@ -1,8 +1,8 @@
 #ifndef RADIAL_MENU_BACKEND_BACKEND_NODELET_HPP
 #define RADIAL_MENU_BACKEND_BACKEND_NODELET_HPP
 
-//#include <radial_menu_backend/backend_config.hpp>
-//#include <radial_menu_backend/backend_controller.hpp>
+#include <radial_menu_backend/backend_config.hpp>
+#include <radial_menu_backend/backend_controller.hpp>
 #include <radial_menu_model/model.hpp>
 #include <radial_menu_msgs/msg/state.hpp>
 /*
