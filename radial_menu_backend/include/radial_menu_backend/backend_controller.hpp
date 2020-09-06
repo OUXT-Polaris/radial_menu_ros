@@ -24,7 +24,7 @@ public:
 
   virtual ~BackendController() {}
 
-  radial_menu_msgs::StatePtr update(const sensor_msgs::Joy &joy) {
+  std::shared_ptr<radial_menu_msgs::msg::State> update(const sensor_msgs::Joy &joy) {
     // reset the menu based on enable/disable state if required
     const bool enable_is_pressed(buttonValue(joy, config_.enable_button) > 0);
     if ((config_.reset_on_enabling && !enable_was_pressed_ && enable_is_pressed) ||

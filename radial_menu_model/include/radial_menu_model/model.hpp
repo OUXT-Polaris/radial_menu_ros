@@ -6,13 +6,11 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <cmath>
 
 #include <radial_menu_model/item.hpp>
-#include <radial_menu_msgs/State.h>
-#include <ros/console.h>
-#include <ros/exception.h>
-#include <ros/param.h>
-#include <ros/time.h>
+#include <radial_menu_msgs/msg/state.hpp>
+#include <rclcpp/rclcpp.hpp>
 
 namespace radial_menu_model {
 
@@ -38,8 +36,8 @@ public:
   ItemConstPtr currentLevel() const { return current_level_; }
 
   ItemConstPtr pointed() const {
-    return (state_.pointed_id >= 0 && state_.pointed_id < items_.size()) ? items_[state_.pointed_id]
-                                                                         : ItemConstPtr();
+    return (state_.pointed_id >= 0 && state_.pointed_id < static_cast<int>(items_.size()))
+      ? items_[state_.pointed_id] : ItemConstPtr();
   }
 
   bool isPointed(const ItemConstPtr &item) const { return item && item == pointed(); }
@@ -52,7 +50,7 @@ public:
   std::vector< ItemConstPtr > selected() const {
     std::vector< ItemConstPtr > items;
     for (const std::int32_t iid : state_.selected_ids) {
-      if (iid >= 0 && iid < items_.size()) {
+      if (iid >= 0 && iid < static_cast<int>(items_.size())) {
         items.push_back(items_[iid]);
       }
     }
@@ -64,7 +62,7 @@ public:
       return false;
     }
     for (const std::int32_t iid : state_.selected_ids) {
-      if (iid >= 0 && iid < items_.size() && item == items_[iid]) {
+      if (iid >= 0 && iid < static_cast<int>(items_.size()) && item == items_[iid]) {
         return true;
       }
     }
@@ -73,7 +71,7 @@ public:
 
   bool isSelected(const std::string &path, const char separator = '.') const {
     for (const std::int32_t iid : state_.selected_ids) {
-      if (iid >= 0 && iid < items_.size() && path == items_[iid]->path(separator)) {
+      if (iid >= 0 && iid < static_cast<int>(items_.size()) && path == items_[iid]->path(separator)) {
         return true;
       }
     }
@@ -100,14 +98,14 @@ public:
     // populate items in the item tree
     const std::vector< ItemConstPtr > new_items(Item::itemsFromDescription(desc));
     if (new_items.empty()) {
-      ROS_ERROR("Model::setDescription(): No items");
+      //ROS_ERROR("Model::setDescription(): No items");
       return false;
     }
 
     // set the initial level of the model
     const ItemConstPtr new_current_level(new_items.front()->childLevel());
     if (!new_current_level) {
-      ROS_ERROR("Model::setDescription(): No children of the root item");
+      //ROS_ERROR("Model::setDescription(): No children of the root item");
       return false;
     }
 
@@ -119,13 +117,16 @@ public:
   }
 
   // set new description obtained from a ROS param server
-  bool setDescriptionFromParam(const std::string &param_name) {
+  bool setDescriptionFromParam(const std::string &param_name){
+    auto node = rclcpp::Node::make_shared("param_setter");
     std::string desc;
-    if (ros::param::get(param_name, desc)) {
+    node->declare_parameter(param_name);
+    if (node->get_parameter(param_name, desc)) {
       return setDescription(desc);
     } else {
+      /*
       ROS_ERROR_STREAM("Model::setDescriptionFromParam(): Cannot get the param '" << param_name
-                                                                                  << "'");
+                                                                                  << "'");*/
       return false;
     }
   }
@@ -143,20 +144,21 @@ public:
   // State
   // *****
 
-  radial_menu_msgs::StatePtr exportState(const ros::Time stamp = ros::Time::now()) const {
-    radial_menu_msgs::StatePtr state(new radial_menu_msgs::State(state_));
+  std::shared_ptr<radial_menu_msgs::msg::State> exportState(const rclcpp::Time stamp) const {
+    std::shared_ptr<radial_menu_msgs::msg::State> state = 
+      std::shared_ptr<radial_menu_msgs::msg::State>(new radial_menu_msgs::msg::State(state_));
     state->header.stamp = stamp;
     return state;
   }
 
   // set new state. also update the current level
-  bool setState(const radial_menu_msgs::State &new_state) {
+  bool setState(const radial_menu_msgs::msg::State &new_state) {
     state_ = new_state;
 
     // update the current level by moving to the deepest level of selected items or its children
     current_level_ = items_.front()->childLevel();
     for (const std::int32_t iid : state_.selected_ids) {
-      if (iid >= 0 && iid < items_.size()) {
+      if (iid >= 0 && iid < static_cast<std::int32_t>(items_.size())) {
         const ItemConstPtr item(items_[iid]);
         ItemConstPtr level(item->childLevel());
         if (!level) {
@@ -173,8 +175,8 @@ public:
 
   bool resetState() { return setState(defaultState()); }
 
-  static radial_menu_msgs::State defaultState() {
-    radial_menu_msgs::State state;
+  static radial_menu_msgs::msg::State defaultState() {
+    radial_menu_msgs::msg::State state;
     state.is_enabled = false;
     state.pointed_id = -1;
     return state;
@@ -203,7 +205,7 @@ public:
       state_.pointed_id = item->itemId();
       return;
     }
-    throw ros::Exception("Model::point()");
+    //throw ros::Exception("Model::point()");
   }
 
   // can unpoint if the given item is in the current level and pointed
@@ -217,7 +219,7 @@ public:
       state_.pointed_id = -1;
       return;
     }
-    throw ros::Exception("Model::unpoint()");
+    //throw ros::Exception("Model::unpoint()");
   }
 
   // ****************************
@@ -242,7 +244,7 @@ public:
       forceSelect(item);
       return;
     }
-    throw ros::Exception("Model::select()");
+    //throw ros::Exception("Model::select()");
   }
 
   // can deselect if the given item is in the current level, has no child level, and is selected
@@ -257,7 +259,7 @@ public:
       forceDeselect(item);
       return;
     }
-    throw ros::Exception("Model::deselect()");
+    //throw ros::Exception("Model::deselect()");
   }
 
   // **********************
@@ -284,7 +286,7 @@ public:
       current_level_ = item->childLevel();
       return;
     }
-    throw ros::Exception("Model::descend()");
+    //throw ros::Exception("Model::descend()");
   }
 
   // can ascend if the current level is not the first
@@ -301,7 +303,7 @@ public:
       current_level_ = current_level_->parentLevel();
       return;
     }
-    throw ros::Exception("Model::ascend()");
+    //throw ros::Exception("Model::ascend()");
   }
 
   // *****
@@ -368,7 +370,7 @@ protected:
 protected:
   std::vector< ItemConstPtr > items_;
   ItemConstPtr current_level_;
-  radial_menu_msgs::State state_;
+  radial_menu_msgs::msg::State state_;
 };
 } // namespace radial_menu_model
 

@@ -6,8 +6,6 @@
 #include <string>
 #include <vector>
 
-#include <ros/console.h>
-
 #include <boost/optional.hpp>
 #include <boost/property_tree/exceptions.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -75,16 +73,16 @@ public:
       std::istringstream iss(str);
       bpt::read_xml(iss, *xml, bpt::xml_parser::no_comments);
     } catch (const bpt::ptree_error &ex) {
-      ROS_ERROR_STREAM("XmlElement::fromString(): " << ex.what());
+      //ROS_ERROR_STREAM("XmlElement::fromString(): " << ex.what());
       return XmlElementConstPtr();
     }
 
     // assert the xml has the unique root element
     if (xml->empty()) {
-      ROS_ERROR("XmlElement::fromString(): No root element in xml");
+      //ROS_ERROR("XmlElement::fromString(): No root element in xml");
       return XmlElementConstPtr();
     } else if (xml->size() >= 2) {
-      ROS_ERROR("XmlElement::fromString(): Multiple root elements in xml");
+      //ROS_ERROR("XmlElement::fromString(): Multiple root elements in xml");
       return XmlElementConstPtr();
     }
 

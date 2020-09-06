@@ -7,7 +7,6 @@
 #include <vector>
 
 #include <radial_menu_model/xml_element.hpp>
-#include <ros/console.h>
 
 namespace radial_menu_model {
 
@@ -78,7 +77,7 @@ public:
 
   ItemConstPtr sibiling(const int sid) const {
     const ItemConstPtr p(parent());
-    if (p && sid >= 0 && sid < p->children_.size()) {
+    if (p && sid >= 0 && sid < static_cast<int>(p->children_.size())) {
       return p->children_[sid];
     } else if (!p && sid == 0) {
       return shared_from_this();
@@ -111,7 +110,7 @@ public:
   const std::vector< ItemConstPtr > &children() const { return children_; }
 
   ItemConstPtr child(const int cid) const {
-    return (cid >= 0 && cid < children_.size()) ? children_[cid] : ItemConstPtr();
+    return (cid >= 0 && cid < static_cast<int>(children_.size())) ? children_[cid] : ItemConstPtr();
   }
 
   ItemConstPtr childLevel() const {
@@ -131,8 +130,9 @@ public:
                               const ItemPtr &parent_item = ItemPtr(), const int default_row = 0) {
         // is the element name "item"?
         if (elm.name() != "item") {
+          /*
           ROS_ERROR_STREAM("Item::itemsFromDescription(): Unexpected element '" << elm.name()
-                                                                                << "'");
+                                                                                << "'");*/
           return false;
         }
 
@@ -144,13 +144,15 @@ public:
         // associate the item with the parent
         if (parent_item) {
           const int row(elm.attribute("row", default_row));
-          if (row < 0 || row >= parent_item->children_.size()) {
-            ROS_ERROR_STREAM("Item::itemsFromDescription(): '" << row << "' is out of row range");
+          if (row < 0 || row >= static_cast<int>(parent_item->children_.size())) {
+            /*
+            ROS_ERROR_STREAM("Item::itemsFromDescription(): '" << row << "' is out of row range");*/
             return false;
           }
           if (parent_item->children_[row]) {
+            /*
             ROS_ERROR_STREAM("Item::itemsFromDescription(): Multiple items in the row '" << row
-                                                                                         << "'");
+                                                                                         << "'");*/
             return false;
           }
           parent_item->children_[row] = item;
@@ -159,7 +161,7 @@ public:
 
         // load the item name from the attribute
         if (!elm.getAttribute("name", &item->name_)) {
-          ROS_ERROR("Item::itemsFromDescription(): No attribute 'name'");
+          //ROS_ERROR("Item::itemsFromDescription(): No attribute 'name'");
           return false;
         }
 
@@ -170,25 +172,26 @@ public:
         } else if (display == "alttxt") {
           item->display_type_ = Item::AltTxt;
           if (!elm.getAttribute("alttxt", &item->alt_txt_)) {
-            ROS_ERROR("Item::itemsFromDescription(): No attribute 'alttxt'");
+            //ROS_ERROR("Item::itemsFromDescription(): No attribute 'alttxt'");
             return false;
           }
         } else if (display == "image") {
           item->display_type_ = Item::Image;
           if (!elm.getAttribute("imgurl", &item->img_url_)) {
-            ROS_ERROR("Item::itemsFromDescription(): No attribute 'imgurl'");
+            //ROS_ERROR("Item::itemsFromDescription(): No attribute 'imgurl'");
             return false;
           }
         } else {
+          /*
           ROS_ERROR_STREAM("Item::itemsFromDescription(): Unknown display type '" << display
-                                                                                  << "'");
+                                                                                  << "'");*/
           return false;
         }
 
         // allocate child items
         const int rows(elm.attribute("rows", elm.numChildElements()));
         if (rows < 0) {
-          ROS_ERROR_STREAM("Item::itemsFromDescription(): Invalid row size '" << rows << "'");
+          //ROS_ERROR_STREAM("Item::itemsFromDescription(): Invalid row size '" << rows << "'");
           return false;
         }
         item->children_.resize(rows);
