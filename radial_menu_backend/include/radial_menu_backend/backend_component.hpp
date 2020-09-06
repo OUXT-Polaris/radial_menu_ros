@@ -21,6 +21,8 @@ namespace radial_menu_backend {
           std::string message = "Cannot set a model description from the param menu_description";
           throw std::runtime_error(message);
         }
+        model_->setDescription(menu_description);
+
         auto param = std::make_shared<rclcpp::SyncParametersClient>(this,"param_holder");
         controller_.reset(
           new BackendController(model_, BackendConfig::fromParam(param)));

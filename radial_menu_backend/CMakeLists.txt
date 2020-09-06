@@ -34,7 +34,14 @@ add_library(
 ament_target_dependencies(radial_menu_backend_component
   rclcpp sensor_msgs radial_menu_model radial_menu_msgs)
 rclcpp_components_register_nodes(radial_menu_backend_component
-  "navi_sim::NaviSimComponent")
+  "radial_menu_backend::BackendComponent")
+
+  install(TARGETS
+  radial_menu_backend_component
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin)
+ament_export_libraries(radial_menu_backend_component)
 
 ament_export_include_directories(include)
 ament_package()
