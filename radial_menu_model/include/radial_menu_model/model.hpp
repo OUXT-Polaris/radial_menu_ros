@@ -116,21 +116,6 @@ public:
     return true;
   }
 
-  // set new description obtained from a ROS param server
-  bool setDescriptionFromParam(const std::string &param_name){
-    auto node = rclcpp::Node::make_shared("param_setter");
-    std::string desc;
-    node->declare_parameter(param_name);
-    if (node->get_parameter(param_name, desc)) {
-      return setDescription(desc);
-    } else {
-      /*
-      ROS_ERROR_STREAM("Model::setDescriptionFromParam(): Cannot get the param '" << param_name
-                                                                                  << "'");*/
-      return false;
-    }
-  }
-
   bool resetDescription() { return setDescription(defaultDescription()); }
 
   static std::string defaultDescription() {

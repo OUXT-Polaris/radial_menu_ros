@@ -5,56 +5,41 @@
 #include <radial_menu_backend/backend_controller.hpp>
 #include <radial_menu_model/model.hpp>
 #include <radial_menu_msgs/msg/state.hpp>
-/*
-#include <ros/exception.h>
-#include <ros/node_handle.h>
-#include <ros/publisher.h>
-#include <ros/subscriber.h>
-#include <sensor_msgs/Joy.h>
-*/
+#include <sensor_msgs/msg/joy.h>
+#include <rclcpp/rclcpp.hpp>
 
-/*
 namespace radial_menu_backend {
-
-class BackendNodelet : public nodelet::Nodelet {
-public:
-  BackendNodelet() {}
-
-  virtual ~BackendNodelet() {}
-
-protected:
-  virtual void onInit() {
-    ros::NodeHandle nh(getNodeHandle()), pnh(getPrivateNodeHandle());
-
-    model_.reset(new radial_menu_model::Model());
-    if (!model_->setDescriptionFromParam(nh.resolveName("menu_description"))) {
-      throw ros::Exception("Cannot set a model description from the param '" +
-                           nh.resolveName("menu_description") + "'");
-    }
-    NODELET_INFO_STREAM("Menu:\n" << model_->toString());
-
-    controller_.reset(
-        new BackendController(model_, BackendConfig::fromParamNs(pnh.getNamespace())));
-
-    state_pub_ = nh.advertise< radial_menu_msgs::State >("menu_state", 1, true);
-    state_pub_.publish(model_->exportState());
-    joy_sub_ = nh.subscribe("joy", 1, &BackendNodelet::onJoyRecieved, this);
-  }
-
-  void onJoyRecieved(const sensor_msgs::JoyConstPtr &joy) {
-    // update menu state and publish
-    state_pub_.publish(controller_->update(*joy));
-    // NODELET_DEBUG_STREAM("Updated menu:\n" << menu_->toString());
-  }
-
-protected:
-  radial_menu_model::ModelPtr model_;
-  BackendControllerPtr controller_;
-
-  ros::Subscriber joy_sub_;
-  ros::Publisher state_pub_;
-};
-} // namespace radial_menu_backend
-*/
+  class BackendComponent: public rclcpp::Node{
+    public:
+      BackendComponent(const rclcpp::NodeOptions & options) 
+      : Node("radial_menu_backend", options)
+      {
+        std::string menu_description;
+        declare_parameter("menu_description");
+        if(!get_parameter("menu_description",menu_description))
+        {
+          std::string message = "Cannot set a model description from the param menu_description";
+          throw std::runtime_error(message);
+        }
+        auto param = std::make_shared<rclcpp::SyncParametersClient>(this,"param_holder");
+        controller_.reset(
+          new BackendController(model_, BackendConfig::fromParam(param)));
+        state_pub_ = this->create_publisher<radial_menu_msgs::msg::State>("menu_state", 1);
+        state_pub_->publish(*model_->exportState(get_clock()->now()));
+        auto callback = std::bind(&BackendComponent::onJoyRecieved, this, std::placeholders::_1);
+        joy_sub_ = this->create_subscription<sensor_msgs::msg::Joy>("joy", 1, callback);
+      }
+    private:
+      void onJoyRecieved(const sensor_msgs::msg::Joy::SharedPtr joy)
+      {
+        state_pub_->publish(*controller_->update(*joy));
+      }
+    protected:
+      radial_menu_model::ModelPtr model_;
+      BackendControllerPtr controller_;
+      rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr joy_sub_;
+      rclcpp::Publisher<radial_menu_msgs::msg::State>::SharedPtr state_pub_;
+  };
+}
 
 #endif
